@@ -38,7 +38,7 @@ impl<T: ?Sized> Mutex<T> {
         self.lock
             .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
             .is_ok()
-            .then_some(MutexGuard::new(self))
+            .then(|| MutexGuard::new(self))
     }
 }
 
