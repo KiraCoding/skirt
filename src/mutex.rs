@@ -35,13 +35,10 @@ impl<T: ?Sized> Mutex<T> {
     }
 
     pub fn try_lock(&self) -> Option<MutexGuard<'_, T>> {
-        match self
-            .lock
+        self.lock
             .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
-        {
-            Ok(_) => Some(MutexGuard::new(self)),
-            Err(_) => None,
-        }
+            .is_ok()
+            .then_some(MutexGuard::new(self))
     }
 }
 
