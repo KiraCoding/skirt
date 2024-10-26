@@ -13,7 +13,7 @@ unsafe impl<T: ?Sized + Send> Send for Mutex<T> {}
 unsafe impl<T: ?Sized + Send> Sync for Mutex<T> {}
 
 impl<T> Mutex<T> {
-    pub fn new(data: T) -> Self {
+    pub const fn new(data: T) -> Self {
         Self {
             lock: AtomicBool::new(false),
             data: UnsafeCell::new(data),
@@ -23,11 +23,7 @@ impl<T> Mutex<T> {
 
 impl<T: ?Sized> Mutex<T> {
     pub fn lock(&self) -> MutexGuard<'_, T> {
-        while self
-            .lock
-            .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
-            .is_err()
-        {
+        while self.try_lock().is_none() {
             spin_loop();
         }
 
@@ -70,6 +66,8 @@ impl<T: ?Sized + Debug> Debug for Mutex<T> {
 pub struct MutexGuard<'m, T: ?Sized + 'm> {
     mutex: &'m Mutex<T>,
 }
+
+unsafe impl<T: ?Sized + Sync> Sync for MutexGuard<'_, T> {}
 
 impl<'m, T: ?Sized> MutexGuard<'m, T> {
     fn new(mutex: &'m Mutex<T>) -> Self {
