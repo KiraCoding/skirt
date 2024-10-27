@@ -1,6 +1,7 @@
 use core::cell::UnsafeCell;
 use core::fmt::{Debug, Display, Formatter};
 use core::hint::spin_loop;
+use core::marker::PhantomData;
 use core::ops::{Deref, DerefMut};
 use core::sync::atomic::{AtomicBool, Ordering};
 
@@ -65,13 +66,17 @@ impl<T: ?Sized + Debug> Debug for Mutex<T> {
 
 pub struct MutexGuard<'m, T: ?Sized + 'm> {
     mutex: &'m Mutex<T>,
+    phantom: PhantomData<MutexGuard<'m, T>>,
 }
 
 unsafe impl<T: ?Sized + Sync> Sync for MutexGuard<'_, T> {}
 
 impl<'m, T: ?Sized> MutexGuard<'m, T> {
     fn new(mutex: &'m Mutex<T>) -> Self {
-        Self { mutex }
+        Self {
+            mutex,
+            phantom: PhantomData,
+        }
     }
 }
 
