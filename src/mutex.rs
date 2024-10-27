@@ -66,7 +66,7 @@ impl<T: ?Sized + Debug> Debug for Mutex<T> {
 
 pub struct MutexGuard<'m, T: ?Sized + 'm> {
     mutex: &'m Mutex<T>,
-    phantom: PhantomData<MutexGuard<'m, T>>,
+    phantom: PhantomData<*const ()>,
 }
 
 unsafe impl<T: ?Sized + Sync> Sync for MutexGuard<'_, T> {}
